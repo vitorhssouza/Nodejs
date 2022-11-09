@@ -11,3 +11,9 @@ connection.connect(function(err){
     if(err) throw err;
     console.log('Connected');
 });
+
+connection.query('SELECT * FROM ANIMAL', (erro, linhas) => {
+    if (erro) throw erro;
+
+    console.log('Animais: ', linhas, '\n\n')
+})
