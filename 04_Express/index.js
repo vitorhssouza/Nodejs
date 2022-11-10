@@ -4,6 +4,18 @@ const app = express();
 const porta = 3000; // Endereço para acesso ao servidor
 const basePath = path.join(__dirname, 'templates')
 
+const checkAutenticacao = function(requisicao, resposta, next){
+    requisicao.authStatus = true
+    if (requisicao.authStatus){
+        console.log('Usuário logado!');
+        next()
+    }else{
+        console.log('Usuário não está logado! Favor fazer login')
+        next()
+    }
+}
+
+app.use(checkAutenticacao);
 
 app.get('/', (requisicao, resposta) => {
     // enviando essa resposta
@@ -16,5 +28,5 @@ app.get('/', (requisicao, resposta) => {
 
 app.listen(porta, ()=>{
     console.log('A aplicação está rodando na porta' +porta);
-})
+});
 
