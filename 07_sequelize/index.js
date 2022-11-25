@@ -34,10 +34,67 @@ app.get('/', (req, res) => {
     res.render('home');
 });
 
+
 // Rotas do Clube
-app.get('/clubes', (req, res) => {
-    res.render('clubes');
+app.get('/clubes', async (req, res) => {
+
+    const clubes = await Clube.findAll({raw: true});
+    res.render('clubes', {clubes});
 });
+
+// Rota para ir pro id dos clubes
+app.get('/clube/:id', async (req, res) => {
+    const id = req.params.id;
+
+    const clube = await Clube.findOne({raw:true, where: {id: id}});
+
+    res.render('clube', {clube})
+});
+
+// Rotas para excluir 
+app.get('/clube/delete/:id', async (req, res) => {
+    const id = req.params.id;
+
+    await Clube.destroy({where: {id: id}});
+
+    res.redirect('/clubes');
+});
+
+
+// Rota edição do clube 
+app.get('/clube/edit/:id', async (req, res) => {
+
+    const id = req.params.id;
+
+    const clube = await Clube.findOne({raw:true, where: {id: id}});
+
+    res.render('clube-edit', {clube});
+});
+
+// Rota para atualizar arquivo clube
+app.post('/clube/edit/save', async (req, res) => {
+    const id = req.body.id;
+    const nome = req.body.nome;
+    let status = req.body.status;
+
+    if(status == 'on'){
+        status = true;
+    }else{
+        status = false;
+    }
+
+    const clubeAlterado = {
+        id: id,
+        nome: nome,
+        status              // OBs como os nomes são iguais posso utilizar apenas um so
+    }
+
+    await Clube.update(clubeAlterado, {where: {id:id}})
+
+    res.redirect('/clubes')
+
+}); 
+
 
 
 // Criando nossa tabela
