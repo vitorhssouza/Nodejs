@@ -4,6 +4,7 @@ const app = express();                              // Classe express
 const conn = require('./db/conn');                  // Modulo de conexão com banco de dados
 
 const Clube = require('./models/Clube');
+const Endereco = require('./models/Endereco')
 
 // Configurando o templates engine(handlebars)
 app.engine('handlebars', exphbs.engine());
@@ -12,6 +13,7 @@ app.set('view engine', 'handlebars');
 //Configuração de formulario para receber os dados
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+
 
 // Rota de post para cadastro de usuario na tabela clube
 app.post('/clube/save', async (req, res) => {
@@ -46,9 +48,9 @@ app.get('/clubes', async (req, res) => {
 app.get('/clube/:id', async (req, res) => {
     const id = req.params.id;
 
-    const clube = await Clube.findOne({raw:true, where: {id: id}});
+    const clube = await Clube.findOne({include: Endereco, where: {id: id}});
 
-    res.render('clube', {clube})
+    res.render('clube', {clube: clube.get({plain: true})});
 });
 
 // Rotas para excluir 
@@ -95,9 +97,32 @@ app.post('/clube/edit/save', async (req, res) => {
 
 }); 
 
+// Rotas do endereços 
+app.post('/endereco/save', async (req, res) => {
+    const ClubeId = req.body.ClubeId;
+    const logradouro = req.body.logradouro;
+    const cep = req.body.cep;
+    const numero = req.body.numero;
+    const complemento = req.body.complemento;
 
+    const enderecoNovo = {logradouro, cep, numero, complemento, ClubeId};
+    await Endereco.create(enderecoNovo);
+
+    res.redirect(`/clube/${ClubeId}`);
+})
+
+// Rota para excluir endereço
+app.get('/endereco/delete/:idClube/:idEndereco', async (req, res) => {
+    const idClube = req.params.idClube;
+    const idEndereco = req.params.idEndereco
+
+    await Endereco.destroy({where: {id: idEndereco}})
+
+    res.redirect(`/clube/${idClube}`)
+})
 
 // Criando nossa tabela
+// .sync({force: true})
 conn.sync().then(() => {
     app.listen(3000, () => {
         console.log('O servidor está rodando.');
